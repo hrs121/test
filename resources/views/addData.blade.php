@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Create Record</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
         .wrapper {
             width: 600px;
@@ -51,15 +52,15 @@
 
                         <!-- New section for phone numbers -->
                         <div class="form-group" id="phoneNumbersSection">
-    <label>Phone Numbers</label>
-    <div class="input-group mb-3">
-        <input type="number" name="phone_numbers[]" class="form-control">
-        <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" onclick="addPhoneNumber()">Add</button>
-            <button class="btn btn-outline-secondary" type="button" onclick="removePhoneNumber(this)">Delete</button>
-        </div>
-    </div>
-</div>
+                            <label>Phone Numbers</label>
+                            <div class="input-group mb-3">
+                                <input type="number" name="phone_numbers[]" class="form-control">
+                                <div class="input-group-append">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="addPhoneNumber()">Add</button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="removePhoneNumber(this)">Delete</button>
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="form-group">
                             <label>Designation</label>
@@ -75,20 +76,19 @@
 
                         <div class="form-group">
                             <label>District</label>
-                            <select name="district" class="form-control">
-                                <option value="district1">District 1</option>
-                                <option value="district2">District 2</option>
-                                <option value="district3">District 3</option>
+                            <select name="district" id="district" class="form-control" onchange="updateUpazila()">
+                                <!-- Populate districts from the database -->
+                                @foreach($districts as $district)
+                                    <option value="{{ $district->id }}">{{ $district->name }}</option>
+                                @endforeach
                             </select>
                             <span class="invalid-feedback"></span>
                         </div>
 
                         <div class="form-group">
                             <label>Upazila</label>
-                            <select name="upazila" class="form-control">
-                                <option value="district1">District 1</option>
-                                <option value="district2">District 2</option>
-                                <option value="district3">District 3</option>
+                            <select name="upazila" id="upazila" class="form-control">
+                                <!-- Options will be populated dynamically using JavaScript -->
                             </select>
                             <span class="invalid-feedback"></span>
                         </div>
@@ -102,7 +102,6 @@
                             </select>
                             <span class="invalid-feedback"></span>
                         </div>
-                        
 
                         <input type="submit" class="btn btn-primary" value="Submit">
                         <a href="{{url('/')}}" class="btn btn-secondary ml-2">Cancel</a>
@@ -113,35 +112,57 @@
     </div>
 
     <script>
-    var phoneNumberIndex = 0;
+        var phoneNumberIndex = 0;
 
-    function addPhoneNumber() {
-        var phoneNumbersSection = document.getElementById('phoneNumbersSection');
-        var phoneNumbersCount = phoneNumbersSection.querySelectorAll('.input-group').length;
+        function addPhoneNumber() {
+            var phoneNumbersSection = document.getElementById('phoneNumbersSection');
+            var phoneNumbersCount = phoneNumbersSection.querySelectorAll('.input-group').length;
 
-        if (phoneNumbersCount < 3) {
-            // Clone the input group
-            var clone = phoneNumbersSection.querySelector('.input-group').cloneNode(true);
+            if (phoneNumbersCount < 3) {
+                // Clone the input group
+                var clone = phoneNumbersSection.querySelector('.input-group').cloneNode(true);
 
-            // Assign a unique index to the new phone number input field
-            phoneNumberIndex++;
-            clone.querySelector('input').name = 'phone_numbers[' + phoneNumberIndex + ']';
-            clone.querySelector('input').value = '';
+                // Assign a unique index to the new phone number input field
+                phoneNumberIndex++;
+                clone.querySelector('input').name = 'phone_numbers[' + phoneNumberIndex + ']';
+                clone.querySelector('input').value = '';
 
-            // Append the clone to the phoneNumbersSection
-            phoneNumbersSection.appendChild(clone);
+                // Append the clone to the phoneNumbersSection
+                phoneNumbersSection.appendChild(clone);
+            }
         }
-    }
 
-    function removePhoneNumber(button) {
-        var phoneNumbersSection = document.getElementById('phoneNumbersSection');
-        var phoneNumbersCount = phoneNumbersSection.querySelectorAll('.input-group').length;
+        function removePhoneNumber(button) {
+            var phoneNumbersSection = document.getElementById('phoneNumbersSection');
+            var phoneNumbersCount = phoneNumbersSection.querySelectorAll('.input-group').length;
 
-        if (phoneNumbersCount > 1) {
-            // Remove the parent input group of the clicked delete button
-            button.parentNode.parentNode.remove();
+            if (phoneNumbersCount > 1) {
+                // Remove the parent input group of the clicked delete button
+                button.parentNode.parentNode.remove();
+            }
         }
-    }
-</script>
+
+        function updateUpazila() {
+            var districtId = $('#district').val();
+
+            // Make an Ajax request to get upazila data
+            $.ajax({
+                url: '/get-upazilas/' + districtId,
+                type: 'GET',
+                success: function(response) {
+                    console.log('Upazila data:', response);
+
+                    // Clear and populate the upazila select options
+                    $('#upazila').empty();
+                    $.each(response, function(key, value) {
+    $('#upazila').append('<option value="' + key + '">' + value + '</option>');
+});
+                },
+                error: function(xhr, status, error) {
+                    console.error('Ajax error:', xhr.responseText);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

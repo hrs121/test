@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 use Session;
 use Illuminate\Http\Request;
 use App\Models\Crud;
+use App\Models\Upazila;
+use App\Models\District;
 
 class CrudController extends Controller
 {
@@ -13,8 +15,9 @@ class CrudController extends Controller
         return view('showData', compact('showData'));
     }
 
-    public function addData(){
-        return view('addData');
+    public function addData() {
+        $districts = District::all(); // Fetch districts from the database
+        return view('addData', compact('districts'));
     }
 
     public function storeData(Request $request){
@@ -78,5 +81,13 @@ class CrudController extends Controller
         Session::flash('msg','Data succesfully deleted.');
         return redirect('/');
     }
+
+    public function getUpazilas($district)
+{
+    $upazilas = Upazila::where('district_id', $district)->pluck('name', 'id');
+    return response()->json($upazilas);
+}
+
+
 
 }
